@@ -1,4 +1,4 @@
-import organizationIcon from '../../png/001-Organizacao.png'
+import organizationIcon from '../../png/001-organizacao.png'
 import laborIcon from '../../png/002-mao-de-obra.png'
 import electronicsIcon from '../../png/003-aparelhos-eletronicos.png'
 import foodIcon from '../../png/004-alimentos.png'
