@@ -15,12 +15,31 @@ The system SHALL present an initial Circula entry screen that communicates the p
 - **WHEN** the user opens the registration option
 - **THEN** the system presents a visual registration experience or message that does not save data and makes the demonstrative nature clear
 
+### Requirement: Header brand logo
+The system SHALL display the root `logo.png` symbol and adjacent `Circula` text on the initial entry screen and in the application header after the visitor enters the map experience, with the header logo rendered compactly, proportionally, and without reducing header usability.
+
+#### Scenario: Entry screen shows Circula logo
+- **WHEN** the user opens the initial login or visitor entry screen
+- **THEN** the screen displays the `logo.png` symbol with adjacent `Circula` text in a way that keeps the Circula identity readable
+
+#### Scenario: Header shows Circula logo
+- **WHEN** the user is viewing the map experience on a desktop-sized viewport
+- **THEN** the header displays the `logo.png` symbol with adjacent `Circula` text in a compact brand lockup, using approximately the earlier compact header logo height while preserving the image aspect ratio and readability
+
+#### Scenario: Header logo preserves image quality
+- **WHEN** the header logo symbol is displayed
+- **THEN** the system avoids visible distortion, cropping, or forced stretching that would degrade the logo presentation
+
+#### Scenario: Header remains usable with compact logo
+- **WHEN** the header displays the compact logo-plus-text lockup alongside the mock-data note and action buttons
+- **THEN** the note and action buttons remain readable, reachable, and clickable without overlapping the brand lockup
+
 ### Requirement: Grande Florianopolis donation map
-The system SHALL display an interactive map focused on the Grande Florianopolis region with donation item markers and organization markers loaded from fictional local data or created temporarily during the current session.
+The system SHALL display an interactive map focused on the Grande Florianopolis region with donation item markers and organization markers loaded from local fictional data or created temporarily during the current session.
 
 #### Scenario: Map opens with mock data
 - **WHEN** the user enters as a visitor
-- **THEN** the system displays a map centered on Grande Florianopolis with at least one donation item marker and at least one receiving organization marker
+- **THEN** the system displays a map centered on Grande Florianopolis with at least 50 local fictional donation item points and at least one receiving organization marker
 
 #### Scenario: Marker types are distinguishable
 - **WHEN** donation items and organizations are visible on the map
@@ -28,14 +47,22 @@ The system SHALL display an interactive map focused on the Grande Florianopolis 
 
 #### Scenario: Donation category icons are shown
 - **WHEN** donation item markers are visible on the map
-- **THEN** each marker uses the PNG icon that corresponds to its donation category
+- **THEN** each marker uses a PNG icon that corresponds to its donation category and is large enough to be recognizable during normal map browsing
 
 #### Scenario: Organization icon is shown
 - **WHEN** organization markers are visible on the map
-- **THEN** each organization marker uses the organization PNG icon
+- **THEN** each organization marker uses the organization PNG icon and is large enough to be recognizable during normal map browsing
+
+#### Scenario: Nearby points cluster by icon type
+- **WHEN** multiple visible markers of the same icon or category are close enough to overlap at the current zoom level
+- **THEN** the system groups them into a cluster that visually communicates the shared icon or category and the number of grouped points
+
+#### Scenario: Clusters expand as user zooms
+- **WHEN** the user zooms in far enough that clustered points no longer need aggregation
+- **THEN** the system reveals the individual item or organization markers represented by the cluster
 
 ### Requirement: Donation item details
-The system SHALL allow the user to view details for each donation item marker, including temporary session items, in a centered overlay.
+The system SHALL allow the user to view details for each donation item marker, including temporary session items and JSON-loaded mock items, in a centered overlay.
 
 #### Scenario: User opens item details
 - **WHEN** the user selects a donation item marker
@@ -57,26 +84,42 @@ The system SHALL allow the user to view details for each receiving organization 
 - **THEN** the system returns the user to the map without removing visible markers
 
 ### Requirement: Donation category filtering
-The system SHALL let the user filter donation item markers by category from a control positioned on the left side of the map, while retaining a way to restore all item markers.
+The system SHALL let the user control visible map marker types from a combined filter-and-legend selector positioned on the left side of the map, while retaining clear actions to show all marker types or hide all marker types and updating clustered marker groups to match the visible selections.
 
 #### Scenario: User filters by category
-- **WHEN** the user selects one of `Alimentos`, `Móveis`, `Aparelhos eletrônicos`, `Eletrodomésticos`, `Vestimentos`, `Mão de Obra`, or `Outros`
-- **THEN** the system displays only donation item markers whose category matches the selected category
+- **WHEN** the user selects one of `Alimentos`, `Móveis`, `Aparelhos eletrônicos`, `Eletrodomésticos`, `Vestimentos`, `Mão de Obra`, or `Outros` in the combined selector
+- **THEN** the system displays donation item markers or item clusters for every selected donation category and hides item markers for unselected donation categories
+
+#### Scenario: User sees icon names in the selector
+- **WHEN** the combined selector is visible
+- **THEN** each selectable marker type displays its map icon and the related marker type name together
 
 #### Scenario: User restores all item markers
-- **WHEN** the user selects `Todos`
-- **THEN** the system displays all donation item markers again
+- **WHEN** the user selects the action to enable all marker types
+- **THEN** the system displays all donation item markers, all current-session temporary item markers, and all organization markers again
+
+#### Scenario: User hides all marker types
+- **WHEN** the user selects the action to remove all marker types
+- **THEN** the system hides donation item markers, current-session temporary item markers, organization markers, and their clusters from the map while leaving the controls available
 
 #### Scenario: Organizations remain discoverable while filtering
-- **WHEN** the user applies a donation item category filter
-- **THEN** the system keeps receiving organizations visible or provides an explicit interface control for their visibility
+- **WHEN** the user applies one or more donation item category selections
+- **THEN** the system keeps receiving organizations independently selectable through the same combined selector
+
+#### Scenario: User filters organizations
+- **WHEN** the user toggles the organization option in the combined selector
+- **THEN** the system shows or hides organization markers and organization clusters without changing the selected donation categories
 
 #### Scenario: Legend appears below filter
-- **WHEN** the map interface displays the category filter
-- **THEN** the system displays the marker legend below the filter on the left side of the map
+- **WHEN** the map interface displays marker visibility controls
+- **THEN** the icon legend and marker visibility controls are presented as one combined control instead of separate filter and legend sections
+
+#### Scenario: Filter panel does not overlap header
+- **WHEN** the map interface displays the header and the left-side combined filter-and-legend panel
+- **THEN** the panel is positioned below or otherwise clear of the header so the controls and header remain readable and clickable
 
 #### Scenario: Category labels distinguish electronics types
-- **WHEN** the system displays filters, marker icons, legends, forms, or item details for electronics-related donations
+- **WHEN** the system displays filters, marker icons, legends, forms, item details, or clusters for electronics-related donations
 - **THEN** it distinguishes `Aparelhos eletrônicos` from `Eletrodomésticos` as separate categories
 
 ### Requirement: Simulated profile and new-item actions
@@ -107,7 +150,7 @@ The system SHALL expose visual profile and new-item actions that demonstrate int
 - **THEN** the temporary item is not required to remain on the map
 
 ### Requirement: Static mock constraints and clarity
-The system SHALL behave as a static frontend mock using only fictional, user-entered session data, or approximate data, without requiring backend services, real authentication, database storage, live uploads, real-time geolocation, or real address geocoding.
+The system SHALL behave as a static frontend mock using only fictional, user-entered session data, or approximate data loaded from local frontend assets, without requiring backend services, real authentication, database storage, live uploads, real-time geolocation, or real address geocoding.
 
 #### Scenario: User interacts with simulated flows
 - **WHEN** the user uses login, registration, profile, or new-item flows
@@ -115,15 +158,19 @@ The system SHALL behave as a static frontend mock using only fictional, user-ent
 
 #### Scenario: User views map data
 - **WHEN** the system displays donation items, donors, contacts, organizations, or locations
-- **THEN** the displayed data is fictional, approximate, user-entered for the current session, or clearly suitable for demonstration and does not expose real personal information
+- **THEN** the displayed data is fictional, approximate, loaded from local mock JSON, user-entered for the current session, or clearly suitable for demonstration and does not expose real personal information
+
+#### Scenario: Mock data source is local
+- **WHEN** the system loads the default donation item dataset
+- **THEN** it loads the dataset from a local JSON asset or module rather than a backend API
 
 ### Requirement: Responsive mock experience
-The system SHALL provide a usable layout for desktop and mobile users across the entry screen, map, left-side filter and legend, action controls, and centered detail overlays.
+The system SHALL provide a usable layout for desktop and mobile users across the entry screen with logo-plus-text branding, branded header with compact logo-plus-text lockup, map, combined filter-and-legend selector, organization controls, clustered markers, action controls, and centered detail overlays.
 
 #### Scenario: User opens the mock on a small screen
 - **WHEN** the user views the application on a mobile-sized viewport
-- **THEN** the entry screen, map controls, filters, legend, markers, action buttons, and detail overlays remain reachable and readable without horizontal scrolling as the primary navigation method
+- **THEN** the entry screen logo-plus-text branding, compact responsive header brand lockup, map controls, combined filter-and-legend selector, organization control, markers or clusters, action buttons, and detail overlays remain reachable and readable without horizontal scrolling as the primary navigation method
 
 #### Scenario: User opens the mock on a desktop screen
 - **WHEN** the user views the application on a desktop-sized viewport
-- **THEN** the map, left-side filter and legend, action controls, and detail overlays use the available space without obscuring the main donation discovery flow
+- **THEN** the entry screen logo-plus-text branding, compact header brand lockup, map, left-side combined filter-and-legend selector, organization control, action controls, markers or clusters, and detail overlays use the available space without obscuring the main donation discovery flow or overlapping the header

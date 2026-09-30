@@ -47,12 +47,26 @@ a {
   padding: clamp(28px, 7vw, 56px);
 }
 
+.entry-brand {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
 .entry-logo {
   display: block;
-  height: clamp(64px, 13vw, 104px);
-  margin-bottom: 18px;
+  height: clamp(58px, 10vw, 86px);
   max-width: min(320px, 100%);
   object-fit: contain;
+}
+
+.entry-brand span {
+  color: #17342c;
+  font-size: clamp(52px, 12vw, 88px);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
 }
 
 .eyebrow,
@@ -118,6 +132,7 @@ textarea {
 .secondary-button,
 .ghost-button,
 .filter-pill,
+.marker-option,
 .icon-button {
   border: 0;
   border-radius: 999px;
@@ -184,20 +199,43 @@ textarea {
 .brand-block {
   align-items: center;
   display: flex;
-  gap: 12px;
+  flex: 1 1 auto;
+  gap: 16px;
+  min-width: 0;
+}
+
+.brand-lockup {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
 }
 
 .brand-logo {
   display: block;
   height: 44px;
-  max-width: 180px;
+  max-width: 72px;
   object-fit: contain;
+  width: auto;
+}
+
+.brand-name {
+  color: #17342c;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
 }
 
 .brand-block small {
   color: #6f5f44;
+  flex: 1 1 190px;
   font-weight: 700;
-  max-width: 190px;
+  max-width: 210px;
+}
+
+.action-row {
+  flex: 0 0 auto;
 }
 
 .side-panel {
@@ -205,15 +243,16 @@ textarea {
   display: grid;
   gap: 14px;
   left: 18px;
-  max-height: calc(100vh - 136px);
+  max-height: calc(100vh - 164px);
   overflow: auto;
   padding: 14px;
-  top: 104px;
-  width: min(310px, calc(100% - 36px));
+  top: 132px;
+  width: min(340px, calc(100% - 36px));
 }
 
 .filter-card,
 .organization-card,
+.marker-selector,
 .legend-card {
   background: transparent;
   border: 0;
@@ -231,6 +270,87 @@ textarea {
   display: block;
   font-weight: 900;
   margin-bottom: 10px;
+}
+
+.marker-selector {
+  display: grid;
+  gap: 12px;
+}
+
+.selector-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.selector-header span {
+  display: block;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.selector-header small {
+  color: #6f5f44;
+  display: block;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.selector-header strong {
+  background: #17342c;
+  border-radius: 999px;
+  color: #fffaf0;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  padding: 5px 9px;
+}
+
+.selector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.marker-option-list {
+  display: grid;
+  gap: 8px;
+}
+
+.marker-option {
+  align-items: center;
+  background: rgba(255, 250, 240, 0.76);
+  border: 1px solid rgba(23, 52, 44, 0.16);
+  color: #17342c;
+  display: flex;
+  gap: 9px;
+  justify-content: flex-start;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.marker-option img {
+  background: #fffdf7;
+  border: 1px solid rgba(23, 52, 44, 0.12);
+  border-radius: 14px;
+  height: 34px;
+  object-fit: contain;
+  padding: 3px;
+  width: 34px;
+}
+
+.marker-option span {
+  font-weight: 850;
+}
+
+.marker-option.active {
+  background: #17342c;
+  border-color: #17342c;
+  color: #fffaf0;
+}
+
+.marker-option:not(.active) {
+  opacity: 0.58;
 }
 
 .filter-list {
@@ -474,9 +594,21 @@ textarea {
     display: grid;
   }
 
+  .brand-lockup {
+    gap: 8px;
+  }
+
   .brand-logo {
     height: 38px;
-    max-width: 150px;
+    max-width: 62px;
+  }
+
+  .brand-name {
+    font-size: clamp(2rem, 11vw, 2.8rem);
+  }
+
+  .brand-block small {
+    max-width: none;
   }
 
   .action-row {
@@ -488,11 +620,16 @@ textarea {
   }
 
   .side-panel {
-    bottom: 74px;
+    bottom: 82px;
     left: 12px;
-    max-height: 40vh;
+    max-height: 38vh;
     top: auto;
     width: calc(100% - 24px);
+  }
+
+  .selector-actions,
+  .marker-option-list {
+    grid-template-columns: 1fr;
   }
 
   .placement-banner {

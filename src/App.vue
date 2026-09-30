@@ -1,11 +1,28 @@
 <script setup>
 import { computed, ref } from 'vue'
-import CategoryFilter from './components/CategoryFilter.vue'
 import DonationMap from './components/DonationMap.vue'
 import EntryScreen from './components/EntryScreen.vue'
 import ModalPanel from './components/ModalPanel.vue'
-import { CATEGORIES, ITEM_CATEGORIES, LEGEND_ITEMS, donationItems, organizations } from './data/mockData'
-import logoCircula from '../logo-circula.png'
+import { CATEGORY_METADATA, ITEM_CATEGORIES, ORGANIZATION_METADATA, donationItems, organizations } from './data/mockData'
+import logoCircula from '../logo.png'
+
+const organizationMarkerId = 'organization'
+const markerTypeOptions = [
+  {
+    id: organizationMarkerId,
+    label: ORGANIZATION_METADATA.label,
+    icon: ORGANIZATION_METADATA.icon,
+    type: 'organization'
+  },
+  ...ITEM_CATEGORIES.map((category) => ({
+    id: `category:${category}`,
+    label: CATEGORY_METADATA[category].label,
+    icon: CATEGORY_METADATA[category].icon,
+    type: 'category',
+    category
+  }))
+]
+const allMarkerTypeIds = markerTypeOptions.map((option) => option.id)
 
 const defaultNewItem = () => ({
   category: 'Alimentos',
@@ -18,8 +35,7 @@ const defaultNewItem = () => ({
 })
 
 const entered = ref(false)
-const selectedCategory = ref('Todos')
-const organizationFilter = ref('show')
+const selectedMarkerTypeIds = ref([...allMarkerTypeIds])
 const selectedItem = ref(null)
 const selectedOrganization = ref(null)
 const activePanel = ref(null)
@@ -30,13 +46,27 @@ const placementMode = ref(false)
 
 const allItems = computed(() => [...donationItems, ...temporaryItems.value])
 
-const filteredItems = computed(() => {
-  if (selectedCategory.value === 'Todos') return allItems.value
-  return allItems.value.filter((item) => item.category === selectedCategory.value)
-})
+const selectedMarkerTypeSet = computed(() => new Set(selectedMarkerTypeIds.value))
 
-const mapItems = computed(() => (organizationFilter.value === 'only' ? [] : filteredItems.value))
-const visibleOrganizations = computed(() => (organizationFilter.value === 'hide' ? [] : organizations))
+const mapItems = computed(() => allItems.value.filter((item) => selectedMarkerTypeSet.value.has(`category:${item.category}`)))
+const visibleOrganizations = computed(() => (selectedMarkerTypeSet.value.has(organizationMarkerId) ? organizations : []))
+
+const toggleMarkerType = (id) => {
+  if (selectedMarkerTypeSet.value.has(id)) {
+    selectedMarkerTypeIds.value = selectedMarkerTypeIds.value.filter((selectedId) => selectedId !== id)
+    return
+  }
+
+  selectedMarkerTypeIds.value = [...selectedMarkerTypeIds.value, id]
+}
+
+const enableAllMarkerTypes = () => {
+  selectedMarkerTypeIds.value = [...allMarkerTypeIds]
+}
+
+const removeAllMarkerTypes = () => {
+  selectedMarkerTypeIds.value = []
+}
 
 const closeModals = () => {
   selectedItem.value = null
@@ -101,7 +131,6 @@ const addTemporaryItem = () => {
     temporary: true
   }
   temporaryItems.value = [...temporaryItems.value, item]
-  selectedCategory.value = 'Todos'
   newItemForm.value = defaultNewItem()
   pickedCoordinates.value = null
   closeModals()
@@ -128,7 +157,10 @@ const addTemporaryItem = () => {
       </div>
       <div class="top-bar">
         <div class="brand-block">
-          <img class="brand-logo" :src="logoCircula" alt="Circula" />
+          <div class="brand-lockup" aria-label="Circula">
+            <img class="brand-logo" :src="logoCircula" alt="" />
+            <span class="brand-name">Circula</span>
+          </div>
           <small>Dados fictícios para demonstração</small>
         </div>
         <div class="action-row">
@@ -136,27 +168,32 @@ const addTemporaryItem = () => {
           <button type="button" class="primary-button compact" @click="openNewItem">Novo item</button>
         </div>
       </div>
-      <aside class="side-panel" aria-label="Filtros e legenda do mapa">
-        <CategoryFilter :categories="CATEGORIES" :selected="selectedCategory" @change="selectedCategory = $event" />
-        <section class="organization-card" aria-label="Filtro de organizações">
-          <span>Organizações</span>
-          <div class="filter-list">
-            <button type="button" :class="['filter-pill', { active: organizationFilter === 'show' }]" @click="organizationFilter = 'show'">
-              Mostrar com itens
-            </button>
-            <button type="button" :class="['filter-pill', { active: organizationFilter === 'hide' }]" @click="organizationFilter = 'hide'">
-              Ocultar organizações
-            </button>
-            <button type="button" :class="['filter-pill', { active: organizationFilter === 'only' }]" @click="organizationFilter = 'only'">
-              Apenas organizações
+      <aside class="side-panel" aria-label="Filtro e legenda do mapa">
+        <section class="marker-selector" aria-label="Selecionar ícones visíveis no mapa">
+          <div class="selector-header">
+            <div>
+              <span>Filtro e legenda</span>
+              <small>Escolha os ícones visíveis no mapa.</small>
+            </div>
+            <strong>{{ selectedMarkerTypeIds.length }}/{{ markerTypeOptions.length }}</strong>
+          </div>
+          <div class="selector-actions" aria-label="Ações do filtro">
+            <button type="button" class="secondary-button compact" @click="enableAllMarkerTypes">Habilitar todos</button>
+            <button type="button" class="ghost-button compact" @click="removeAllMarkerTypes">Remover todos</button>
+          </div>
+          <div class="marker-option-list">
+            <button
+              v-for="option in markerTypeOptions"
+              :key="option.id"
+              type="button"
+              :class="['marker-option', { active: selectedMarkerTypeSet.has(option.id) }]"
+              :aria-pressed="selectedMarkerTypeSet.has(option.id)"
+              @click="toggleMarkerType(option.id)"
+            >
+              <img :src="option.icon" :alt="option.label" />
+              <span>{{ option.label }}</span>
             </button>
           </div>
-        </section>
-        <section class="legend-card" aria-label="Legenda do mapa">
-          <h2>Legenda</h2>
-          <span v-for="item in LEGEND_ITEMS" :key="item.label">
-            <img :src="item.icon" :alt="item.label" />{{ item.label }}
-          </span>
         </section>
       </aside>
     </section>

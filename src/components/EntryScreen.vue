@@ -1,5 +1,5 @@
 <script setup>
-import logoCircula from '../../logo-circula.png'
+import logoCircula from '../../logo.png'
 
 defineEmits(['enter', 'register'])
 </script>
@@ -7,7 +7,10 @@ defineEmits(['enter', 'register'])
 <template>
   <main class="entry-shell">
     <section class="hero-card">
-      <img class="entry-logo" :src="logoCircula" alt="Circula" />
+      <div class="entry-brand" aria-label="Circula">
+        <img class="entry-logo" :src="logoCircula" alt="" />
+        <span>Circula</span>
+      </div>
       <p class="eyebrow">Mock WebGIS solidário</p>
       <p class="hero-copy">Unindo doações com quem precisa na Grande Florianópolis.</p>
       <p class="mock-note">Experiência demonstrativa com dados fictícios, sem login real ou persistência.</p>
