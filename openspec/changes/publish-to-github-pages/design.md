@@ -1,12 +1,13 @@
 ## Context
 
-The project is a Vite/Vue static app. `vite.config.js` currently only registers the Vue plugin and does not set `base`, while `index.html` loads the entry module from `/src/main.js`. For a GitHub Pages project site, production assets are served below the repository path, so root-relative built asset URLs can make the published page render blank even when the build succeeds. There is no existing `.github/workflows/` deployment workflow and the README has no deployment guidance.
+The project is a Vite/Vue static app. `vite.config.js` currently only registers the Vue plugin and does not set `base`, while `index.html` loads the entry module from `/src/main.js`. For a GitHub Pages project site, production assets are served below the repository path, so root-relative built asset URLs can make the published page render blank even when the build succeeds. There is no existing `.github/workflows/` deployment workflow and the README has no deployment guidance. A first GitHub Pages deployment attempt also reported that actions targeting the deprecated Node.js 20 runtime are being forced onto Node.js 24, so the workflow should use action versions and a build runtime compatible with the current GitHub Actions runtime.
 
 ## Goals / Non-Goals
 
 **Goals:**
 - Make the production build resolve app assets correctly when hosted as a GitHub Pages project site.
 - Provide a free GitHub Actions deployment workflow that publishes the Vite `dist` output to GitHub Pages.
+- Use GitHub Actions action versions and Node runtime settings that avoid the deprecated Node.js 20 action-runtime warning during Pages deployment.
 - Keep local `npm run dev`, `npm run build`, and `npm run preview` behavior simple for development.
 - Document the GitHub Pages source/settings and published URL expectations.
 
@@ -26,7 +27,11 @@ The project is a Vite/Vue static app. `vite.config.js` currently only registers 
    - Rationale: This keeps deployment free and repeatable without committing generated build output.
    - Alternatives considered: manual `gh-pages` branch deployment, but that adds operational steps and generated artifacts to branch management.
 
-3. Keep deployment documentation minimal and specific.
+3. Use Node 24-compatible action versions and build runtime in the Pages workflow.
+   - Rationale: GitHub Actions is deprecating Node 20-based action runtimes, and the deployment should not rely on actions that trigger forced runtime upgrades or deprecation failures.
+   - Alternatives considered: keeping `actions/checkout@v4` and `actions/setup-node@v4`, but the deploy attempt already showed they target the deprecated runtime in this environment.
+
+4. Keep deployment documentation minimal and specific.
    - Rationale: The README currently contains only a title, so it should document the commands and Pages settings needed to reproduce deployment without becoming a full operations manual.
    - Alternatives considered: documenting multiple hosting providers, but the request is specifically GitHub Pages.
 
@@ -34,13 +39,14 @@ The project is a Vite/Vue static app. `vite.config.js` currently only registers 
 
 - [Repository name differs from `Mock-Circula`] -> Confirm the remote slug during implementation or make the base configurable through an environment variable used by the workflow.
 - [GitHub Pages is not enabled for GitHub Actions] -> Document that Pages source must be set to GitHub Actions in the repository settings.
+- [Action versions target a deprecated runtime] -> Use Node 24-compatible major versions where available and verify the deploy job no longer reports the Node 20 action-runtime deprecation as a build failure.
 - [External map/geocoding providers block or rate-limit requests] -> The app should still load; provider availability affects runtime map/geocoding behavior rather than the blank-page deployment fix.
 - [Case sensitivity in the project path] -> Match the repository slug exactly in the default base path or generated workflow value.
 
 ## Migration Plan
 
 1. Update Vite deployment configuration for the GitHub Pages project path.
-2. Add a GitHub Actions Pages workflow that installs dependencies, builds the app, uploads `dist`, and deploys it.
+2. Add a GitHub Actions Pages workflow that installs dependencies, builds the app with a supported Node runtime, uploads `dist`, and deploys it using Node 24-compatible action versions.
 3. Update README with local verification, deployment instructions, and the expected Pages URL pattern.
 4. Verify with `npm run build`, local preview using the configured base path where feasible, and OpenSpec validation.
 5. After merging to the publishing branch, enable Pages from GitHub Actions and confirm the published URL loads the entry screen instead of a blank page.
