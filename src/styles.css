@@ -494,6 +494,19 @@ textarea {
   margin: 0;
 }
 
+.pickup-tools .status-message {
+  color: #0d766d;
+}
+
+.pickup-tools .error-message {
+  color: #9f2f1d;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .modal-backdrop {
   align-items: center;
   background: rgba(12, 28, 25, 0.54);

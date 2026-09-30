@@ -43,6 +43,8 @@ const temporaryItems = ref([])
 const newItemForm = ref(defaultNewItem())
 const pickedCoordinates = ref(null)
 const placementMode = ref(false)
+const geocoding = ref(false)
+const geocodingError = ref('')
 
 const allItems = computed(() => [...donationItems, ...temporaryItems.value])
 
@@ -50,6 +52,25 @@ const selectedMarkerTypeSet = computed(() => new Set(selectedMarkerTypeIds.value
 
 const mapItems = computed(() => allItems.value.filter((item) => selectedMarkerTypeSet.value.has(`category:${item.category}`)))
 const visibleOrganizations = computed(() => (selectedMarkerTypeSet.value.has(organizationMarkerId) ? organizations : []))
+
+const geocodeAddress = async (address) => {
+  const params = new URLSearchParams({
+    q: `${address}, Grande Florianópolis, Santa Catarina, Brasil`,
+    limit: '1',
+    bbox: '-49.05,-27.95,-48.25,-27.25'
+  })
+  const response = await fetch(`https://photon.komoot.io/api/?${params.toString()}`, {
+    headers: { Accept: 'application/json' }
+  })
+
+  if (!response.ok) throw new Error('Falha ao consultar o endereço.')
+
+  const results = await response.json()
+  const [longitude, latitude] = results.features?.[0]?.geometry?.coordinates || []
+  if (!latitude || !longitude) throw new Error('Endereço não encontrado.')
+
+  return [Number(Number(latitude).toFixed(5)), Number(Number(longitude).toFixed(5))]
+}
 
 const toggleMarkerType = (id) => {
   if (selectedMarkerTypeSet.value.has(id)) {
@@ -94,26 +115,43 @@ const openNewItem = () => {
   closeModals()
   newItemForm.value = defaultNewItem()
   pickedCoordinates.value = null
+  geocodingError.value = ''
   activePanel.value = 'newItem'
 }
 
 const beginPlacement = () => {
+  geocodingError.value = ''
   placementMode.value = true
   activePanel.value = null
 }
 
 const handleLocationPick = (coordinates) => {
   pickedCoordinates.value = coordinates
+  geocodingError.value = ''
   placementMode.value = false
   activePanel.value = 'newItem'
 }
 
-const addTemporaryItem = () => {
+const addTemporaryItem = async () => {
+  if (geocoding.value) return
   const form = newItemForm.value
   const hasAddress = form.locationText.trim().length > 0
   if (!form.name.trim() || !form.description.trim() || !form.condition.trim() || (!pickedCoordinates.value && !hasAddress)) return
 
-  const coordinates = pickedCoordinates.value || [-27.5949, -48.5482]
+  geocodingError.value = ''
+  let coordinates = pickedCoordinates.value
+  if (!coordinates) {
+    geocoding.value = true
+    try {
+      coordinates = await geocodeAddress(form.locationText.trim())
+    } catch (error) {
+      geocodingError.value = `${error.message} Ajuste o endereço ou adicione o ponto clicando no mapa.`
+      return
+    } finally {
+      geocoding.value = false
+    }
+  }
+
   const item = {
     id: `temporary-${Date.now()}`,
     name: form.name.trim(),
@@ -124,7 +162,7 @@ const addTemporaryItem = () => {
     imageLabel: form.photoLabel.trim() || 'Item temporário',
     locationName: pickedCoordinates.value
       ? `Ponto selecionado no mapa (${coordinates[0]}, ${coordinates[1]})`
-      : `${form.locationText.trim()} (endereço informado, posição aproximada no mapa)`,
+      : `${form.locationText.trim()} (endereço geocodificado: ${coordinates[0]}, ${coordinates[1]})`,
     coordinates,
     donorName: 'Visitante Circula',
     contact: 'Contato fictício do visitante',
@@ -133,6 +171,7 @@ const addTemporaryItem = () => {
   temporaryItems.value = [...temporaryItems.value, item]
   newItemForm.value = defaultNewItem()
   pickedCoordinates.value = null
+  geocodingError.value = ''
   closeModals()
   selectedItem.value = item
 }
@@ -233,9 +272,11 @@ const addTemporaryItem = () => {
       <div class="pickup-tools">
         <button class="secondary-button" type="button" @click="beginPlacement">Adicionar clicando no mapa</button>
         <p v-if="pickedCoordinates">Ponto selecionado: {{ pickedCoordinates[0] }}, {{ pickedCoordinates[1] }}</p>
-        <p v-else>Use um endereço/referência ou clique no mapa para definir a posição aproximada.</p>
+        <p v-else>Use um endereço/referência para buscar as coordenadas ou clique no mapa para definir o ponto.</p>
+        <p v-if="geocoding" class="status-message">Buscando coordenadas do endereço...</p>
+        <p v-if="geocodingError" class="error-message">{{ geocodingError }}</p>
       </div>
-      <button class="primary-button" type="submit">Simular envio</button>
+      <button class="primary-button" type="submit" :disabled="geocoding">{{ geocoding ? 'Buscando endereço...' : 'Simular envio' }}</button>
     </form>
   </ModalPanel>
 
